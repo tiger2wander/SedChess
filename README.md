@@ -1,23 +1,23 @@
-## Шахматы, написанные на языке утилиты sed
+## Chess, written in sed utility
 
-### Запуск
+### Launch
 sed -f chess.sed
 
-### Инструкция
-Для начала нажите Enter. Чтобы выйти, нажмите q, затем Enter.
+### Instruction
+To start press Enter. To exit, press q, then Enter.
 
-Чтобы сделать ход, введите его через пробел, затем Enter, например: e2 e4. Вы ходите белыми.
+To make a move, enter a space, then Enter, for example: e2 e4. You go white.
 
-### Реализовано:
-1. позиционная оценка на один ход и оценка фигур
-2. обнаружение шаха и мата
-3. прошедшая пешка преобразуется в ферзя
+### Implemented:
+1. positional evaluation by one stroke and assessment figures
+2. Detection of the Shah and the mat
+3. passed pawn is converted to a queen
 
-### Не реализовано:
-1. рокировка (введена в правила в XIV-XV вв.)
-2. взятие на проходе (введено в XV в)
-3. обнаружение пата
-4. контроль за правильностью хода человека
+### Not implemented:
+1. Affairs (introduced in the rules in XIV-XV centuries.)
+2. passant (introduced in the XV century)
+3. detection stalemate
+4. control over the correctness of the progress of human
 
 -- 
-Евгений Степанищев
+Eugene Stepanishev
