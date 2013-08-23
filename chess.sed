@@ -194,26 +194,26 @@
 /
 
 
-# оценки запрограммированы по матрицам из книги
-# «Программирование шахмат и других логических игр» Корнилова Евгения Николаевича
+# Evaluation matrices are programmed from the book
+# "Programming chess and other logic games" Evgeny Kornilov
 
-# переформатирование команд
+# Reformatting commands
 1s/ *//g; 1s/\n\n*/ /g; 1s/^ //
 
-# обработка поступающей команды
+# Process the incoming team
 1!{
     /^\([a-h][1-8]\) *\([a-h][1-8]\)$/ {
         s//\1 \2/
-        # добавляем полученные значения впереди стека исполнения
+        # Add the values ​​obtained in front of a stack of execution
         G; s/\n/ /
-        # переходим на исполнение команд
+        # Turn on the performance of teams
         b @
     }
 
-    # игрок хочет выйти
+    # A player wants to leave
     /^q/ q
 
-    # введена какая-то ерунда, стираем и возвращаем стек команд
+    # Put any nonsense, erase and return stack commands
     i\
     [12H[J[1A
     s/.*//
@@ -225,24 +225,24 @@
 :@
 s/@\([^ ]* \)/\1@/
 
-# начать массив
+# Begin array
 /@set-array()/ {
     s/^/ARRAY /
     b @
 }
 
-# метка
+# Mark
 /@label(/ {
     b @
 }
 
-# переход к метке
+# Move to the label
 /@back(/ {
     s/label(\([^)]*\))\(.*\)@back(\1)/@label(\1)\2back(\1)/
     b @
 }
 
-# выход из цикла, если на вершине END
+# Out of the loop, if the top END
 /@break-if-end(/ {
     /^END */{
         s///
@@ -251,28 +251,28 @@ s/@\([^ ]* \)/\1@/
     b @
 }
 
-# ввод данных
+# Input data
 /@input()/ {
     h; b
 }
 
-# удаление последней копии доски
+# Delete the last copy of the board
 /@delete-last-board()/ {
     s/\(.*\)Board:[^ ]* */\1/
     b @
 }
 
-# дублирование доски
+# Overlapping boards
 /@copy-board()/ {
     s/\(Board:[^ ]*\)/\1 \1/
     b @
 }
 
-# генерация начального состояния доски
+# Generation of the initial state boards
 /@figures()/ {
-    # формат: XYFig
-    # координаты белых тут и дальше должны идти НИЖЕ чёрных
-    # БОЛЬШИЕ — чёрные, маленькие — белые
+    # Format: XYFig
+    # Coordinates of white here and then have to go below the black
+    # BIG - black, small - white
     s/^/Board:\
 a8Rb8Nc8Id8Qe8Kf8Ig8Nh8R\
 a7Pb7Pc7Pd7Pe7Pf7Pg7Ph7P\
@@ -282,7 +282,7 @@ a4 b4 c4 d4 e4 f4 g4 h4 \
 a3 b3 c3 d3 e3 f3 g3 h3 \
 a2pb2pc2pd2pe2pf2pg2ph2p\
 a1rb1nc1id1qe1kf1ig1nh1r /
-# пробел в конце нужен!
+# Need a space at the end!
 
 #     s/^/Board:\
 # a8 b8 c8 d8 e8Kf8 g8 h8r\
@@ -299,30 +299,30 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-# вывод доски
+# Output boards
 /@board()/ {
-    # сохраняем стек команд
+    # Save the stack commands
     h
-    # убираем всё, кроме доски (берём всегда последнюю доску)
+    # Remove all but the board (we are always the last board)
     s/.*Board://
     s/ .*$//
-    # расшифровываем доску
-    # Pawn, Queen, King, bIshop, kNight, Rook, Zero — псевдокороль для опредления мата и шаха
+    # Decode board
+    # Pawn, Queen, King, Bishop, Knight, Rook, Zero - psevdokorolʹ to determine the mats chess
     s/..z//g
     y/pqkinrPQKINR12345678abcd/♟♛♚♝♞♜♙♕♔♗♘♖987654323579/
     s/\([1-9e-h]\)\([1-9]\)\(.\)/[\2;\1H\3 /g
 
-    # расцвечиваем
+    # Brighten
     s/[8642];[37eg]H/&[48;5;209;37;1m/g
     s/[9753];[37eg]H/&[48;5;94;37;1m/g
     s/[8642];[59fh]H/&[48;5;94;37;1m/g
     s/[9753];[59fh]H/&[48;5;209;37;1m/g
 
-    # двузначные числа
+    # Double figures
     s/e/11/g;s/f/13/g;s/g/15/g;s/h/17/g
 
     s/$/[0m[11H/
-    # выводим доску и возвращаем всё как было
+    # Print the board and return it as it was
     i\
 [2J[1;3Ha b c d e f g h\
 8\
@@ -334,42 +334,42 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 2\
 1\
 \
-Введите команду
+Enter the command
     p
     g
 
     b @
 }
 
-# делаем ход по введённым пользователем данным
+# Make progress on a user-entered data
 /@move-white()/ {
-    # гарды основных регулярок (их нужно тщательно защищать от несрабатываний,
-    # иначе sed выдаст ошибку и остановится)
-    # вычищаем всё, кроме доски и первых двух значений
+    # Guard basic regex (they need to be carefully protected from malfunctions that,
+    # else sed will give an error and stops)
+    # We clean everything but the board and the first two values
     h; s/\([^ ]*\) \([^ ]*\).*Board:\([^ ]*\).*/\1 \2 \3/
     
-    # выделяем указанные клетки
+    # Select the cells
     s/\([^ ]*\) [^ ]* .*\(\1.\)/&(1:\2)/
     s/[^ ]* \([^ ]*\) .*\(\1.\)/&(2:\2)/
-    # теперь они имеют формат:
-    # номер_по_порядку_ввода:XYФигура
+    # Now they are in the format:
+    # Nomer_po_poryadku_vvoda: XYFigura
     s/.*(\(.....\)).*(\(.....\)).*/\1 \2/
 
-    # теперь надо проверить:
-    # 1. что берём не чужую и не пустую фигуру
+    # Now check the following:
+    # 1. that does not take someone else's, and not an empty shape
     /1:..[PQKINR ]/ {
         g; s/[^ ]* [^ ]* *//; b @
     }
 
-    # 2. не кладём на место своей фигуры
+    # 2. do not put in place of the figure
     /2:..[pqkinr]/ {
         g; s/[^ ]* [^ ]* *//; b @
     }
 
-    # порядок такой:
-    # указанные координаты у найденных фигур меняем между собой
+    # Procedure is as follows:
+    # Specified coordinates found in the figures change each
 
-    # если ход будет вперёд…
+    # If progress is ahead ...
     /2:.*1:/ {
         g
         #    1        2                3            4           5
@@ -379,104 +379,104 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         }
     }
 
-    # ход назад
+    # Move back
     g
     #     1         2            3                4          5
     s/\([^ ]*\) \([^ ]*\) \(.*Board:[^ ]*\)\1\([pqkinr]\)\([^ ]*\)\2./\3\2\4\5\1 /
 
-    # проверяем, не оказалась ли пешка на 8-й горизонтали, если да, то надо преобразовать
-    # её в ферзя (за ход может быть только одна такая пешка)
+    # Check to see if the pawn was on the 8th row, if so, it is necessary to convert
+    # it to the queen (of course can be only one such pawn)
     :move-white::checkpawn
     s/\([a-h]8\)p/\1q/
 
     b @
 }
 
-# количество оставшихся фигур
+# Number of remaining pieces
 /@count-pieces()/ {
     h
-    # убираем всё, кроме доски
+    # Remove all but the board
     s/.*Board://
     s/ .*$//
-    # убираем всё, кроме белых фигур
+    # Remove all but the white pieces
     s/[^pqkinrPQKINR]//g
-    # считаем
+    # Believe
     s/./1/g
-    # возвращаем стек команд
+    # Return stack commands
     G
-    # после G появился перевод строки, убираем его
+    # G came after a line feed, remove it
     s/\n/ /
 
     b @
 }
 
-#оценочная функция имеющихся чёрных фигур
+#Estimator available black pieces
 /@estimate-black-pieces()/ {
-    # пешка — 100, слон и конь — 300, ладья — 500, ферзь — 900, король — 9000,
-    # ещё 9000 — псевдофигура чёрных, чтобы не было переполнения = 21900
+    # Pawn - 100, elephant and horse - 300, Rook - 500, Queen - 900, King - 9000,
+    # else 9000 - psevdofigura black to avoid overflow = 21900
 
-    # очистка всего лишнего
+    # Cleaning all the excess
     h; s/.*Board://; s/ .*$//
 
-    # убираем всё, кроме подсчитываемых фигур
+    # Remove all but counted figures
     s/[^PINRQK]//g
 
-    # считаем количество * коэффициент фигуры (ферзь Q — единственный, но может появиться ещё через пешку)
+    # Count the number of * coefficient figure (queen Q - the only one, but may appear in another pawn)
     s/P/1/g; s/[NI]/111/g; s/R/11111/g; s/Q/111111111/g
-    # король, ставим вперёд к псевдофигуре
+    # King put forward to psevdofigure
     s/^\(.*\)K/HHHHHHHHH\1/
-    # чёрная псевдофигура
+    # Black psevdofigura
     s/^/HHHHHHHHH/
 
-    # группируем сотни и тысячи
+    # Grouping hundreds of thousands of
     s/1111111111/H/g; s/HHHHHHHHHH/T/g
 
-    # вставляем двоеточия
+    # Insert a colon
     s/\(.\)\1*/&:/g
-    # если нет единиц, в конец — ещё одно двоеточие
+    # If there are no units to the end - another colon
     /1/ ! s/$/:/
-    # если нет сотен, то до единиц или последнего двоеточия — ещё двоеточие
+    # If not hundreds, up to the last units or colon - even colon
     /H/ ! s/[1:]/:&/
 
     y/HT/11/; s/$/:B/
-    # добавляем к сохранённому стеку
+    # Add to the saved stack
     G; s/\n/ /
 
     b @
 }
 
-#оценочная функция имеющихся белых фигур
+# Estimator available white pieces
 /@estimate-white-pieces()/ {
-    # пешка — 100, слон и конь — 300, ладья — 500, ферзь — 900, король — 9000
+    # Pawn - 100, elephant and horse - 300, Rook - 500, Queen - 900, King - 9000
 
-    # очистка всего лишнего
+    # Cleaning all the excess
     h; s/.*Board://; s/ .*$//
-    # убираем всё, кроме подсчитываемых фигур
+    # Remove all but counted figures
     s/[^pinrqk]//g
-    # считаем количество * коэффициент фигуры (ферзь q — единственный, но может появиться ещё через пешку)
+    # Count the number of * coefficient figure (queen q - the only one, but may appear in another pawn)
     s/p/1/g; s/[ni]/111/g; s/r/11111/g; s/q/111111111/g
 
-    # король, ставим вперёд
+    # King put forward
     s/^\(.*\)k/HHHHHHHHH\1/
 
-    # группируем сотни и тысячи
+    # Grouping hundreds of thousands of
     s/1111111111/H/g; s/HHHHHHHHHH/T/g
 
-    # вставляем двоеточия
+    # Insert a colon
     s/\(.\)\1*/&:/g
-    # если нет единиц, в конец — ещё одно двоеточие
+    # If there are no units to the end - another colon
     /1/ ! s/$/:/
-    # если нет сотен, то до единиц или последнего двоеточия — ещё двоеточие
+    # If not hundreds, up to the last units or colon - even colon
     /H/ ! s/[1:]/:&/
 
     y/HT/11/; s/$/:B/
-    # добавляем к сохранённому стеку
+    # Add to the saved stack
     G; s/\n/ /
 
     b @
 }
 
-#для отладки: вывод текущего стека
+# For debugging output of the current stack
 /@log()/ {
     l
     q
@@ -489,25 +489,25 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     g
 }
 
-#оценочная функция для позиции чёрных пешек
+# Estimator for the position of black pawns
 /@estimate-black-pawn()/ {
-    # очистка всего лишнего
+    # Cleaning all the excess
     h; s/.*Board://; s/ .*$//
-    # оставляем только чёрные и белые пешки, перекодируем их в понятные координаты
-    # теперь пешки записаны вот так: XЦвет (где Цвет — Black или White), разделены пробелом
+    # Leaving only black and white pawns, re-encoding them into understandable coordinates
+    # Now pawns written like this: XTsvet (where Color - Black or White), separated by a space
     s/[a-h][1-8][^Pp]//g; y/Ppabcdefgh/BW12345678/; s/\([1-8]\)[1-8]/ \1/g
 
-    # → Этап 1
-    # ищем чёрные пешки, на вертикали у которых стоят белые, координаты белых идут
-    # всегда ПОСЛЕ координат чёрных
+    # → Step 1
+    # Find the black pawns on the vertical who are white, whites are the coordinates
+    # Always after the coordinates of black
     :estimate-black-pawn::black
     /\([1-8]\)B\(.*\1\)W/ {
         s//\1b\2W/
         b estimate-black-pawn::black
     }
 
-    # → Этап 2.1
-    # переводим координаты в последовательности длины X
+    # → Step 2.1
+    # Translate the coordinates of a sequence of length X
     :estimate-black-pawn::x
     /[2-8]/ {
         s/[2-8]/1&/g
@@ -516,36 +516,35 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         b estimate-black-pawn::x
     }
 
-    # → Этап 2.2
-    # ищем пешки, не отсеянные на этапе 1, у которых на соседней линии слева стоят белые
+    # → Step 2.2
+    # Find a pawn, not screened out in Phase 1, in which the adjacent line on the left are white
     :estimate-black-pawn::left
     /\( 1*\)B\(.*\11\)W/ {
         s//\1b\2W/
         b estimate-black-pawn::left
     }
 
-    # → Этап 2.3
-    # ищем пешки, не отсеянные на этапе 2, у которых на соседней линии справа стоят белые
+    # → Step 2.3
+    # Find a pawn, not screened out in Phase 2, in which on the next line on the right are white
     :estimate-black-pawn::right
     / 1\(1*\)B\(.* \1\)W/ {
         s// 1\1b\2W/
         b estimate-black-pawn::right
     }
 
-    # В итоге, W — белые пешки, b — чёрные, B — чёрные свободные пешки
-    # избавляемся от несвободных и белых пешек
-    s/ [^ ]*[Wb]//g
+    # As a result, W - white pawns, b - black, B - free black pawns
+    # Get rid of non-free and white pawns    s/ [^ ]*[Wb]//g
 
-    # → Этап 3
-    # считаем стоимости чёрных свободных пешек
+    # → Step 3
+    # Consider the cost of the free black pawns
     s/ 1B//; s/ 11B/ ::11111B/; s/ 111B/ :1:B/; s/ 1111B/ :1:11111B/; s/ 11111B/ :11:B/
     s/ 111111B/ :111:B/; s/ 1111111B/ 1:1111:B/; s/ 11111111B//
 
-    # → Этап 4
-    # сохраняем полученное, грузим стек обратно, вырезаем доску и оставляем чёрные пешки с координатами
+    # → Step 4
+    # Saves received, ship stack back, cut out the board and leave the black pawns with coordinates
     G; h; s/.*Board://; s/ .*$//; s/[a-h][1-8][^p]//g
 
-    # оцениваем позиции всех пешек
+    # Evaluate the positions of all the pawns
     s/.[81]p/::B/g
 
     s/[abcfgh]7p/::1111B/g; s/[de]7p/::B/g
@@ -558,28 +557,28 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 
     s/[ah][32]p/:1:11B/g; s/[bg][32]p/:1:111111B/g; s/[cf][32]p/:11:1111B/g; s/[de][32]p/:111:11B/g
 
-    # вставляем пробелы между оценками
+    # Insert spaces between the estimates
     s/B/& /g; s/^/ /
 
-    # → Этап 5
-    # возвращаем сохранённые оценки, убираем остатки стека
+    # → Step 5
+    # Return the stored evaluation, we remove the remnants of the stack
     G; s/\n\(.*\)\n.*/ \1/
 
-    # добавляем к сохранённому стеку, вычищаем наш мусор, который мы складывали выше —
-    # там второй строкой лежат оценки
+    # Add to the saved stack, we clean our garbage, which we piled up -
+    # Second line there are estimates
     G; s/\n.*\n/ /
 
     b @
 }
 
-#оценочная функция для позиции чёрного короля
+# Estimator for the position of the black king
 /@estimate-black-king()/ {
     h; s/.*Board://; s/ .*$//
 
-    # выделяем короля
+    # Allocate King
     s/[a-h][1-8][^K]//g
 
-    # считаем его вес (матрица конца игры)
+    # Consider the weight (the matrix of the game)
     s/[ah][18]./::/
     
     s/[de][54]./:111:111111/
@@ -599,14 +598,14 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-#оценочная функция для позиции чёрного коня
+# Estimator for the position of the black knight
 /@estimate-black-knight()/ {
     h; s/.*Board://; s/ .*$//
 
-    # выделяем коней
+    # Select horses
     s/[a-h][1-8][^N]//g
 
-    # считаем их вес
+    # Believe their weight
     s/[ah][18]./::B/g
     
     s/[de][54]./:111:11B/g
@@ -628,14 +627,14 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-#оценочная функция для позиции чёрного слона
+# Estimator for the position of the black bishop
 /@estimate-black-bishop()/ {
     h; s/.*Board://; s/ .*$//
 
-    # выделяем слонов
+    # Highlight of elephants
     s/[a-h][1-8][^I]//g
 
-    # считаем их вес
+    # Believe their weight
     s/[a-h][81]./:::1:1111B/g; s/[ah][1-8]./:::1:1111B/g
 
     s/[bg][72]./:::11:11B/g; s/[c-f][3-6]/:::11:11B/g
@@ -647,34 +646,34 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-#оценочная функция для позиции чёрной королевы (ферзя)
+# Estimator for the position of the black queen (queen)
 /@estimate-black-queen()/ {
     h; s/.*Board://; s/ .*$//
 
-    # выделяем ферзя и вражеского короля
+    # Distinguish the enemy king and queen
     s/[a-h][1-8][^Qk]//g
 
-    # если одной из фигур на поле нет, возврат
+    # If one of the figures on the field not return
     /Q/,/k/ ! {
         g; b @
     }
 
-    # короля выдвигаем вперёд
+    # King pushed forward
     s/\(.*\)\(..k\)\(.*\)/\2\1\3/
 
-    # если у нас имеется второй ферзь, то ставим его через разделитель
-    # и впереди к нему лепим короля
+    # If we have a second queen, then put it through a separator
+    # In front of him and sculpt King
     s/\(..k\)\(..Q\)\(..Q\)/ \1\2\# \1\3/
 
-    # фигуры убираем, координаты к числам, расставляем пробелы вокруг чисел для ограничения
+    # Remove the figure, the coordinates of the numbers, we arrange spaces around numbers to limit
     y/abcdefgh/12345678/; s/\([1-9]\)\(.\)./\1 \2 /g
 
-    # группируем координаты, получится X1 X2 Y1 Y2 (на двух строках)
-    # у нас захватывается по три значения, но путаницы не будет, т.к. используются пробелы,
-    # а между парами чисел — «решётка»
+    #  Group the coordinates, you get X1 X2 Y1 Y2 (on two lines)
+    # We captured by three values, but will not confusion as use spaces,
+    # And between pairs of numbers - "lattice"
     s/\([1-8]\) \([1-8]\) \([1-8]\)/\1 \3 \2/g
 
-    # переводим координаты в последовательности длины значений координат
+    # Translate the coordinates of a sequence of length coordinate values
     :estimate-black-queen::xy
     /[2-8]/ {
         s/[2-8]/1&/g
@@ -683,30 +682,30 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         b estimate-black-queen::xy
     }
 
-    # должно получиться (8 — наибольшее растояние):
+    # Should be able to (8 - the greatest distance):
     # 8 - (XM-Xm) + 8 - (YM-Ym) => 16-XM+Xm-YM+Ym => 16-(XM+YM)+(Xm+Ym)
 
-    # сортировка — бо́льшая координата вперёд
+    # Sort - a large coordinate ahead
     s/ \(11*\) \(\111*\)/ \2 \1/g
 
-    # получается 4 числа для каждой пары фигур: XM Xm YM Ym, нужно сложить их попарно,
-    # вторую двойку переносим вперёд и складываем с 16
+    #4 numbers obtained for each pair of figures: XM Xm YM Ym, you need to put them in pairs,
+    # Second deuce portable ahead and add up to 16
     s/\(11*\) \(11*\) \(11*\) \(11*\)/1111111111111111\2\4 \1\3/g
 
-    # вычитаем вторую координату из первой
+    # Subtract the second coordinate of the first
     s/\(11*\)\(1*\) \1/\2/g
 
-    # объединяем цисла до обеим фигурам
+    # Ciesla to combine the two figures
     s/[# ]//g
 
-    # группируем сотни и тысячи
+    # Grouping hundreds of thousands of
     s/1111111111/H/g; s/HHHHHHHHHH/T/g
 
-    # вставляем двоеточия
+    # Insert a colon
     s/\(.\)\1*/&:/g
-    # если нет единиц, в конец — ещё одно двоеточие
+    # If there are no units to the end - another colon
     /1/ ! s/$/:/
-    # если нет сотен, то до единиц или последнего двоеточия — ещё двоеточие
+    # If not hundreds, up to the last units or colon - even colon
     /H/ ! s/[1:]/:&/
 
     y/HT/11/
@@ -716,7 +715,7 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-# суммированние чисел на стеке, пока не встретится слово ARRAY
+# Sum up the numbers on the stack until it encounters a word ARRAY
 /@sum-array()/ {
     h
     /ARRAY.*/ {
@@ -725,7 +724,7 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 
         :sum-array::shift
         /[1:][1:]*B/ {
-            # сложение разряда
+            # Addition of discharge
             :sum-array::sum
             /11*B/ {
                 s/\(11*\)B\(.*\)\(1*\)S/B\2\1\3S/
@@ -734,7 +733,7 @@ a1rb1nc1id1qe1kf1ig1nh1r /
                 b sum-array::sum
             }
 
-            # сдвиг разряда
+            # Shift discharge
             s/:B/B/g; s/:\(1*\)S/S \1:/
 
             b sum-array::shift
@@ -747,33 +746,33 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-# вычитание чисел на стеке из первого, пока не встретится слово ARRAY
+# Subtraction of numbers on the stack from the first, until a word ARRAY
 /@sub-array()/ {
     / *ARRAY.*/ {
         h; s///
-        # у первого числа заменяем букву, чтобы отличать
+        # Is replaced with the first of a letter to distinguish
         s/B */M /
 
-        # у каждого числа впереди должен быть ограничитель
+        # In front of each number must stop
         s/^/:/; s/ / :/g
 
-        # у первого числа снимаем самый младший разряд
+        # From the first day of shooting LSB
         s/:\(1*\)\(M.*\)/:\2 :\1#S/
         :sub-array::loop
 
-        # теперь пройдёмся по младшим разрядам оставшихся чисел
+        # Now go through the junior ranks of the remaining numbers
         :sub-array::minus
         /:\(11*\)\(B.*\) :\1\(1*\)#S/ {
             s//:\2 :\3#S/
             b sub-array::minus
         }
 
-        # младшие разряды для вычитания остались?
+        # Significant bits to subtract left?
         /:11*B/ {
-            # переносим разряды вычитаемого на младший
+            # Transfer the bits to be subtracted Jr.
             :sub-array::cy
-            # если переносить нечего, то всё, получается число меньше нуля,
-            # возвращаем ноль, выходим
+            # If there is nothing to carry, everything turns out the number is less than zero,
+            # Return a zero exit
             /1.*M/ ! {
                 s/.*/:::B/
                 b sub-array::end
@@ -783,22 +782,22 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 
             /1M/ ! b sub-array::cy
 
-            # добавляем к вычитаемому
+            # Add to the subtrahend
             s/:\(1*\)\(M.*\) \(:.*\)#S/:\2 \3\1#S/
 
             b sub-array::minus
         }
 
-        # срезаем у всех по пустому теперь разряду, у тех, у кого их не осталось, убираем
+        # Cut away all the empty category now, those who do not have any left, remove
         s/:\([BM]\)/\1/g; s/ :*B//g
 
-        # берём следующий разряд
+        # Take the next digit
         s/:\(1*\)\(M.*\) \([^ ]*\)#S/:\2 :\1#S \3S/
 
-        # если осталось что вычитать, вычитаем
+        # If there is that subtract, subtract
         /B/ b sub-array::loop
 
-        # убираем лишнее, нормализируем
+        # Remove superfluous normaliziruem
         s/[#MS ]//g; s/://
 
         :sub-array::end
@@ -809,46 +808,46 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-# выбор указанной фигуры (вернётся в виде строки)
-# XYF__XYF__ где F — наименование фигуры, __ — место под перебор позиции
+# Selection of this figure (returns a string)
+# XYF__XYF__ where F - the name of the figure, __ - a place in the enumeration position
 /@select-figures(.)/ {
     h
-    # убираем из данных всё лишнее, параметр помечаем маркером
+    # Remove all unnecessary data from the parameter marker mark
     s/@select-figures(\(.\))\(.*\)/\2 Selected:\1/
     s/.*Board://
     s/ .*Selected:/ Selected:/
 
-    # выделяем из доски то, что указал пользователь
+    # Highlight of the boards that have user
     :select-figures::select
     /\([a-h][0-9]\)\(.\)\(.* Selected:\2\)/ {
         s//\3\1\2__/
         b select-figures::select
     }
 
-    # убираем маркер и изувеченную доску
+    # Remove the marker and mutilated board
     s/.*Selected:.//
 
-    # возвращаем стек назад
+    # Return stack ago
     G; s/\n/END /
     b @
 }
 
 /@iter-knight()/ {
-    # убираем коня, который ход закончил
+    # Remove the horse that finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первого коня
+    # Select the first horse
     h; s/\(.....\).*/\1/
 
-    # кодировка ходов: __ — не был сделан, XX — сделаны все возможные
-    # Left, Down, Up, Right, первым пишется ход на две клетки, например:
-    # LU — влево на две, вверх на одну
+    # Encoding moves: __ - has not been made, XX - made all possible
+    # Left, Down, Up, Right, first written in the course of two cells, for example:
+    # LU - left into two, one on top
 
     /__/ {
         s//LU/
-        # сдвигаем координату X-2, Y+1, 0 — признак, что ход невозможен
+        # Shift the coordinate of X-2, Y+1, 0 - a sign that progress is impossible
         y/abcdefgh/00abcdef/
         y/12345678/23456780/
 
@@ -921,23 +920,23 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b common::go
 }
 
-# король ходит на одну клетку куда угодно              N
-# кодировка по сторонам света                        W   E
+# King goes to one cell anywhere N
+# Code to the cardinal W E
 # __ → NN → EN → EE → SE → SS → WS → WW → NW → XX      S
 /@iter-king()/ {
-    # убираем короля, который ход закончил
+    # Remove the king, who finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первого (и единственного) короля
+    # Highlight of the first (and only) King
     h; s/\(.....\).*/\1/
 
-    # текущую выбранную позицию меняем на следующую
+    # Change the current selected position to the next
     s/$/ __NNENEESESSWSWWNWXX/
     s/\(..\) \(.*\1\)\(..\)/\3 \2\3/; s/ .*//
 
-    # заменяем координты, согласно выбранной позиции
+    # Replace koordinty, according to the selected position
 
     # Y+1
     /N/ y/12345678/23456780/
@@ -951,19 +950,19 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b common::go
 }
 
-# ладья, ходит по вертикали или горизонтали на любое количество ходов,   N
-# если никто не стоит на пути                                          W   E
-# ходит начинаем с текущей координаты в указанную сторону                S
+# Rook goes vertically or horizontally on any number of turns,      N
+# If no one is on the way W     E
+# Walks starting from the current position to the specified direction   S
 /@iter-rook()/ {
-    # убираем ладью, которая ход закончила
+    # Remove the boat, which finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первую ладью
+    # Select the first boat
     h; s/\(.....\).*/\1/
 
-    # первое наше направление — восток, потом идём по следующим направлениям
+    # Our first direction - east, then go to the following areas
     /__/ s/\(\(.\).*\)__/\1E\2/
     /E0/ s/\(\(.\).*\)E./\1W\2/
     /W0/ s/\(.\(.\).*\)W./\1N\2/
@@ -976,21 +975,21 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     /S/ y/12345678/01234567/
     /N/ y/12345678/23456780/
 
-    # переписываем состояние в координаты выбранной фигуры, так как фигура хода пропадёт
+    # Rewrite the state in the coordinates of the selected shape as the figure of the progress will be gone
     /[SN]/ s/\(.\).\(..\(.\)\)/\1\3\2/
     /[WE]/ s/.\(...\(.\)\)/\2\1/
 
     /[0X]/ ! {
-        # возвращаем стек, убираем всё, что за и перед доской на стеке
+        # Return stack, remove everything after and before the board on the stack
         s/$/#/; G; s/\n.*\(Board:[^ ]*\).*/\1/
 
-        # если на выбранной позиции псевдокороль, больше ни на что не обращаем внимания
+        # If the selected position psevdokorol, more on what we do not pay attention
         /^\(..\).*\1z/ ! {
-            # проверка, не стоит ли на выбранной позиции своя фигура, если стоит, прекращаем скан сразу
+            # Check, whether or not in the selected position has its own shape, if necessary, stop scan immediately
             s/^\(..\)R\(.\).*\(\1[PQKINR]\).*/00R\20#\3/
             s/^\(..\)r\(.\).*\(\1[pqkinr]\).*/00r\20#\3/
 
-            # если же там стоит чужая фигура, то двигаться можно, а ходить за неё — нет
+            # If there is an alien figure, then you can move and go for it - there is no
             s/^\(..\)R\(.\).*\(\1[pqkinr]\).*/\1R\20#\3/
             s/^\(..\)r\(.\).*\(\1[PQKINR]\).*/\1r\20#\3/
         }
@@ -1000,31 +999,31 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b common::go
 }
 
-# слон (офицер) ходит по диагонали, при условии, что на пути нет фигур
-# ходить начинаем с текущего места, обозначения направлений: ↘ (v), ↖ (^), ↗ (+), ↙ (-)
-# попытка использовать тут Юникод привела к переодическому вылету утилиты sed
-# обозначение хода выглядит так: ↙8 — отошли от текущей позиции на 8 шагов
+# Elephant (the officer) runs diagonally, provided that the path is clear figures
+# Walk starting from the current location, refer to the directions: ↘ (v), ↖ (^), ↗ (+), ↙ (-)
+# Attempt to use Unicode here periodically led to the departure sed utility
+# Symbol stroke looks like: ↙8 - moved away from the current position to the 8 steps
 /@iter-bishop()/ {
-    # убираем слона, который ход закончил
+    # Remove the elephant, who finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первого слона
+    # Highlight of the first elephant
     h; s/\(.....\).*/\1/
 
-    # если нужен переход на следующее направление
+    # If you must move to the next direction
     /^....[0_]/ {
-        # текущую выбранную позицию меняем на следующую
+        # Change the current selected position to the next
         s/$/ __v①v0^①^0+①+0-①-0XX/
         s/\(..\) \(.*\1\)\(..\)/\3 \2\3/; s/ .*//
         b iter-bishop::changed
     }
-    # иначе идём по выбранном направлению дальше
+    # Else going on in the chosen direction
     y/①②③④⑤⑥⑦⑧/②③④⑤⑥⑦⑧0/
     :iter-bishop::changed
 
-    # переведём десятичное число в количество стрелок, сохранив текущее состояние 
+    # Translate the decimal number to a number of arrows, while maintaining the current state 
     H
     :iter-bishop::tobin
     /[0X]/ ! {
@@ -1034,7 +1033,7 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     }
 
     :iter-bishop::minus
-    # вычисляем координаты
+    # Compute the coordinates
     /→/ {
         s///
 
@@ -1050,29 +1049,29 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         b iter-bishop::minus
     }
 
-    # возращаем то состояние, которое было, сейчас у нас: стек, \n, исходное состояние, \n, вычисленное
-    # с испорченным номером хода
+    # Returns the same state as it was, we now have: the stack, \n, the initial state, \n, calculated
+    # With a broken number stroke
 
-    # вычищаем из стека лишние данные — их отправляем в хранилище
+    # We clean the stack extra data - send them to the repository
     H; x; s/\n/#/; h; s/#.*//
 
-    # меняем местами, теперь в хранилище у нас чистый стек, а у нас: исходное \n испорченное
+    # Swap, now in storage, we clean the stack, and we have: the original \n spoiled
     x; s/.*#//
 
-    # переносим координаты из испорченного в исходное (в испорченном мы вычислили координаты хода),
-    # испорченное состояние уничтожаем
+    # Transfer the coordinates of spoiled the home (the RAR, we calculated the coordinates of course)
+    # Destroy the tainted state
     s/..\(.*\)\n\(..\).*/\2\1/
 
     /[0X]/ ! {
-        # возвращаем стек, убираем всё, что за и перед доской на стеке
+        # Return stack, remove everything after and before the board on the stack
         s/$/#/; G; s/\n.*\(Board:[^ ]*\).*/\1/
-        # если на выбранной позиции псевдокороль, ни на что не обращаем больше внимание
+        # If psevdokorol selected position, no matter what we do not pay more attention
         /^\(..\).*\1z/ ! {
-            # проверка, не стоит ли на выбранной позиции своя фигура, если стоит, прекращаем скан сразу
+            # Check, whether or not in the selected position has its own shape, if necessary, stop scan immediately
             s/^\(..\)I\(.\).*\(\1[PQKINR]\).*/00I\20#\3/
             s/^\(..\)i\(.\).*\(\1[pqkinr]\).*/00i\20#\3/
 
-            # если же там стоит чужая фигура, то двигаться можно, а ходить за неё — нет
+            # If there is an alien figure, then you can move and go for it - there is no
             s/^\(..\)I\(.\).*\(\1[pqkinr]\).*/\1I\20#\3/
             s/^\(..\)i\(.\).*\(\1[PQKINR]\).*/\1i\20#\3/
         }
@@ -1083,36 +1082,36 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 }
 
 
-# чёрные пешки умеют ходить по 4м направлениям:
-# 1) на 1 ход (DO, Direction One)
-# 2) на 2 до середины доски, если поле перед ней не занято (DT, Direction Two)
-# 3) вниз влево, если там чужая фигура (DL, Direction Left)
-# 4) вниз вправо, если там чужая фигура (DR, Direction Right)
-# кроме того, пешка, достигая края доски, имеет право превратиться в любую фигуру (кроме короля)
+# Black pawns are able to walk on 4m areas:
+# 1) for 1 turn (DO, Direction One)
+# 2) by 2 until the middle of the board, if the field in front of it is not occupied (DT, Direction Two)
+# 3) down the left, if there is an alien figure (DL, Direction Left)
+# 4) down to the right if there is an alien figure (DR, Direction Right)
+# In addition, a pawn, reaching the edge of the board has the right to turn into any shape (except the king)
 /@iter-pawn()/ {
-    # убираем пешку, которая ход закончила
+    # Remove the pawn who finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первую пешку
+    # Select the first pawn
     h; s/\(.....\).*/\1/
 
-    # смотрим, если чёрная пешка на седьмой горизонтали, можно сделать длинный ход, иначе делаем короткий
+    # See if the black pawn on the seventh horizontally, you can make a long course, or do short
     /^\(.\)7P__/ {
-        # собственно, сам ход
+        # In fact, the very course
         s//\15PDT/
         b iter-pawn::checkpiece
     }
 
-    # смотрим, если белая пешка на второй горизонтали, можно сделать длинный ход, иначе делаем короткий
+    # See if the white pawn on the second rank, it can be a long course, or do short
     /^\(.\)2p__/ {
-        # собственно, сам ход
+        # In fact, the very course
         s//\14pDT/
         b iter-pawn::checkpiece
     }
 
-    # иначе, двигаемся по направлениям
+    # Else, we move in directions
     s/$/ __DODLDRXXDTDO/
     s/\(..\) \(.*\1\)\(..\)/\3 \2\3/; s/ .*//
 
@@ -1121,65 +1120,65 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     /[RL]/ {
         /L/ y/abcdefgh/0abcdefg/
         /R/ y/abcdefgh/bcdefgh0/
-        # для этих ходов нужна обязательно чужая фигура на клетке, куда ходим
-        # возвращаем доску
+        # For these moves is absolutely necessary alien figure in the cell where we go
+        # Return the board
         G; s/\n.*\(Board:[^ ]*\).*/ \1/
 
-        # проверяем, если нет, то и не ходим туда
-        # z — «призрачный король», фейковая фигура для проверки шаха и мата
+        # Check, if not, then do not go there
+        # z - «ghost king" fake web form to test the Shah and the mat
         /^\(..\)P.*\1[pqkinrz]/ ! s/^../00/
         /^\(..\)p.*\1[PQKINRz]/ ! s/^../00/
 
-        # убираем за собой доску
+        # Clean up after a board
         s/ *Board:.*//
 
         b common::go
     }
 
     :iter-pawn::checkpiece
-    # пешка не может ходить прямо, если там стоит фигура
-    # возвращаем доску
+    # Pawn can not walk straight, if there is a figure
+    # Return the board
     G; s/\n.*\(Board:[^ ]*\).*/ \1/
 
-    # если на пути псевдокороль, не обращаем на него внимания
+    # If psevdokorol on the way, we do not pay attention to him
     /^\(..\).*\1z/ ! {
-        # проверяем, есть ли там фигура, любая, если есть, ходить не можем
+        # Check if there is a figure, either, if there is, we can not go
         /^\(..\).*\1[pqkinrPQKINR]/ {
             s/^../00/
         }
     }
 
-    # убираем за собой доску
+    # Clean up after a board
     s/ *Board:.*//
 
     b common::go
 }
 
-# ферзь (королева) ходит по диагонали, горизонтали в вертикали, при условии, что на пути нет фигур
-# ходить начинаем с текущего места, обозначения направлений: ↘ (v), ↖ (^), ↗ (+), ↙ (-), ← (<), → (>), ↓ (,), ↑ (')
-# попытка использовать тут Юникод привела к переодическому вылету утилиты sed
-# обозначение хода выглядит так: ↙8 — отошли от текущей позиции на 8 шагов
+# Queen (Queen) runs diagonally, horizontally, in a vertical, provided that the path is clear figures
+# Walk starting from the current location, refer to the directions: ↘ (v), ↖ (^), ↗ (+), ↙ (-), ← (<), → (>), ↓ (,), ↑ (')
+# Attempt to use Unicode here periodically led to the departure sed utility
+# Symbol stroke looks like: ↙ 8 - moved away from the current position to the 8 steps
 /@iter-queen()/ {
-    # убираем слона, который ход закончил
+    # Remove the elephant, who finished the course
     s/^...XX//
-    # выходим, если ходить нечем
+    # Exit if there is nothing to go
     /^END/ b @
 
-    # выделяем первого слона
+    # Highlight of the first elephant
     h; s/\(.....\).*/\1/
 
-    # если нужен переход на следующее направление
+    # If you must move to the next direction
     /^....[0_]/ {
-        # текущую выбранную позицию меняем на следующую
+        # Change the current selected position to the next
         s/$/ __v①v0^①^0+①+0-①-0<①<0>①>0,①,0'①'0XX/
         s/\(..\) \(.*\1\)\(..\)/\3 \2\3/; s/ .*//
         b iter-queen::changed
     }
-    # иначе идём по выбранном направлению дальше
+    # Else going on in the chosen direction
     y/①②③④⑤⑥⑦⑧/②③④⑤⑥⑦⑧0/
     :iter-queen::changed
 
-    # переведём десятичное число в количество стрелок, сохранив текущее состояние 
+    # Translate the decimal number to a number of arrows, while maintaining the current state 
     H
     :iter-queen::tobin
     /[0X]/ ! {
@@ -1189,7 +1188,7 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     }
 
     :iter-queen::minus
-    # вычисляем координаты
+    # Compute the coordinates
     /→/ {
         s///
 
@@ -1205,30 +1204,30 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         b iter-queen::minus
     }
 
-    # возращаем то состояние, которое было, сейчас у нас: стек, \n, исходное состояние, \n, вычисленное
-    # с испорченным номером хода
+    # Returns the same state as it was, we now have: the stack, \n, the initial state, \n, calculated
+    # With a broken number stroke
 
-    # вычищаем из стека лишние данные — их отправляем в хранилище
+    # We clean the stack extra data - send them to the repository
     H; x; s/\n/#/; h; s/#.*//
 
-    # меняем местами, теперь в хранилище у нас чистый стек, а у нас: исходное \n испорченное
+    # Swap, now in storage, we clean the stack, and we have: the original \n spoiled
     x; s/.*#//
 
-    # переносим координаты из испорченного в исходное (в испорченном мы вычислили координаты хода),
-    # испорченное состояние уничтожаем
+    # Transfer the coordinates of spoiled the home (the RAR, we calculated the coordinates of course)
+    # Destroy the tainted state
     s/..\(.*\)\n\(..\).*/\2\1/
 
     /[0X]/ ! {
-        # возвращаем стек, убираем всё, что за и перед доской на стеке
+        # Return stack, remove everything after and before the board on the stack
         s/$/#/; G; s/\n.*\(Board:[^ ]*\).*/\1/
 
-        # если на этой позиции стоит псевдофигура, шпарим дальше
+        # If this position is psevdofigura, Spahr more
         /^\(..\)[Qq].*\1z/ ! {
-            # проверка, не стоит ли на выбранной позиции своя фигура, если стоит, прекращаем скан сразу
+            # Check, whether or not in the selected position has its own shape, if necessary, stop scan immediately
             s/^\(..\)Q\(.\).*\(\1[PQKINR]\).*/00Q\20#\3/
             s/^\(..\)q\(.\).*\(\1[pqkinr]\).*/00q\20#\3/
 
-            # если же там стоит чужая фигура, то двигаться можно, а ходить за неё — нет
+            # If there is an alien figure, then you can move and go for it - there is no
             s/^\(..\)Q\(.\).*\(\1[pqkinr]\).*/\1Q\20#\3/
             s/^\(..\)q\(.\).*\(\1[PQKINR]\).*/\1q\20#\3/
         }
@@ -1238,110 +1237,110 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b common::go
 }
 
-# перемещаем позицию и сумму в конец стека,
-# перекладываем счётчик позиции фигуры
+# Move the position and the amount at the end of the stack,
+# We shift the position of the counter figures
 /@store-iter()/ {
-    # если ходить было нельзя, вычищаем мусор
+    # If it was impossible to go clean out the trash
     /^[^ ]*B  *0..../ {
         s///
         b @
     }
 
-    # (оценка позиции) (фигура хода) счётчик позиции (текущая фигура) всё остальное →
-    # текущая фигура, всё остальное, сумма, ход откуда→ход куда
+    # (Position estimation) (figure run) counter position (the current figure), all the rest →
+    # Current figure, the rest of the sum, the course from the course where →
     s/\([^ ]*\) *\(...\)..\(...\)\([^ ]*END *.*\)/\3\4 \1(\3→\2)/
     b @
 }
 
-# перемещаем позициюв конец стека (без веса фигуры)
-# перекладываем счётчик позиции фигуры
+# Move pozitsiyuv end of the stack (without the weight of the body)
+# We shift the position of the counter figures
 /@store-only-iter()/ {
-    # если ходить было нельзя, вычищаем мусор
+    # If it was impossible to go clean out the trash
     /^0..../ {
         s///
         b @
     }
 
-    # (фигура хода) счётчик позиции (текущая фигура) всё остальное →
-    # текущая фигура, всё остальное, Move:ход куда
+    # (Speed ​​figure), the counter position (the current figure), all the rest →
+    # Current figure, everything else, Move: move to
     s/^\(...\)..\(...\)\([^ ]*END *.*\)/\2\3 Move:\1/
     b @
 }
 
-# вычисление лучшего хода из указанных
+# Calculate the best move of the above
 /@find-best-move()/ {
-    # есть ли оценки (больше одной причём)?
+    # If the estimates (with more than one)?
     /[1:][1:]*B/ {
         h
-        # убираем лишнее
+        # Remove unnecessary
         s//Moves:&/; s/.*Moves:/ /
 
-        # нормализация числа
+        # Normalized number
         s/ / :::::/g; s/ :*\(1*:1*:1*:1*:1*:1*B\)/ \1/g
 
         y/B/:/
 
         :find-best-move::cut
-        # смотрим, есть ли числа с непустым старшим разрядом
+        # See if there is a number with a non significant bit
         / 1/ {
-            # если есть, то убираем те, у которых страший разряд пустой
+            # If so, remove those who feared before discharge empty
             s/ :[^ ]*//g
-            # теперь отрезаем у каждого по одной цифре старшего разряда
+            # Now cut off from each one digit at a senior level
             s/ 1/ /g
             b find-best-move::cut
         }
-        # переход через разряд, есть ли ещё числа с разрядами?
+        # Move through the discharge, is there still a number of bits?
         s/ :/ /g
         /:/ b find-best-move::cut
 
-        # если было несколько максимумов, оставляем только первый
+        # If there were a few highs, leaving only the first
         s/^ *\([^ ]*\).*/\1/
-        # возвращаем данные на основной стек
+        # Return the data to the main stack
         G; s/\n/ /
 
-        # маркируем место, где у нас находятся оценки
+        # Mark the place where we find estimates
         s/[1:][1:]*B/Moves: &/
 
-        # теперь, если на стеке запись вида (XYF→XYF), дописываем к ней оценку
+        # Now, if the stack on entry form (XYF → XYF), appends it to the evaluation of
         s/^\(([^)]*\)\(.* \)\([1:][1:]*B\1\)/\3\2/
 
-        # убираем ненужные теперь оценки
+        # Remove unnecessary now estimates
         s/ *Moves:.*//
-        # теперь на стеке запись вида Est(XYF→XYF), либо такой записи вообще нет (если не было возможных ходов у фигуры)
+        # Now on the stack entry form Est (XYF → XYF), or such records were not (if it was not possible moves in the figure)
     }
 
     b @
 }
 
-# ход чёрных, согласно найденным данным
+# Black's move, according to the data found
 /@move-black()/ {
-    # убираем с позиции куда будем ходить фигуру, что бы там не стояло, удаляем это
+    # Remove from a position where we will walk a figure that would have stood there, remove it
     s/\([1:][1:]*B(\(..\)\(.\)→\(..\).).*Board:.*\)\4./\1\2 /
-    # меняем координаты фигуры, которой ходим
+    # Change the coordinates of the pieces, which go
     s/[1:][1:]*B(\(..\)\(.\)→\(..\).) *\(.*Board:.*\)\1\2/\4\3\2/
-    # если получилась пешка на первой горизонтали, делаем из неё ферзя, она может быть только одна
+    # If it pawn on the first rank, makes her his queen, it can only be one
     s/\([a-h]1\)P/\1Q/
 
     b @
 }
 
-# создаём вторую доску и фейковых королей на ней, в тех позициях, куда бы король мог сходить
+# Create a second board and create fake kings in it, in the positions where the king could go to
 /@make-fake-kings()/ {
-    # копируем короля с координатой в конец
+    # Copy the King with the coordinate at the end of
     s/\(...\)[^ ]* *\(.*\)/\2 King:\1__/
 
     h
 
     :make-fake-kings::loop
     /XX/ ! {
-        # убираем всё, кроме короля
+        # Remove all but the king
         s/.*King:\(.....\).*/\1/
 
-        # текущую выбранную позицию меняем на следующую (HR — ход на месте)
+        # Change the current selected position to the next (HR - turn on the spot)
         s/$/ __NNENEESESSWSWWNWXX/
         s/\(..\) [^ ]*\1\(..\).*/\2/
 
-        # заменяем координты, согласно выбранной позиции
+        # Replace koordinty, according to the selected position
 
         # Y+1
         /N/ y/12345678/23456780/
@@ -1354,23 +1353,23 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 
         H; g
 
-        # переписываем выбранную позицию в позицию самой первой фигуры (фигуры где король стоит сейчас)
+        # Rewrite the selected position itself in the position of the first figure (the figure where the king is now)
         s/\(King:...\)..\(.*..[kK]\(..\)\)$/\1\3\2/
 
-        # на второй доске в указанной позиции (если там не стоит своя же фигура, нужно поставить
-        # псевдо-короля (z)
+        #  On the second board in the specified position (if it is not worth its same figure, you need to put
+        # Pseudo-King (z)
         /.*\([^0][^0][kK]\)..$/ {
             x
             s//\1 &/
 
-            # ставим в конец доски белого псевдокороля…
+            # Put an end to the white board psevdokorolya ...
             /^\(..\)k \(Board:[^ ]*\)\1[^pqinrk]/ s/^\(..\) Board:[^ ]*/&\1z/
-            # чёрного псеводокороля
+            # Black psevodokorolya
             /^\(..\)K \(Board:[^ ]*\)\1[^PQKINR]/ s/^\(..\) Board:[^ ]*/&\1z/
-            # (на месте, куда мы якобы помещаем псевдокороля не должно стоять своей же фигуры)
-            # если её там не было, то теперь две ячейки имеют одну и ту же координату
+            # (In the place where we supposedly put psevdokorolya should not stand his own figure)
+            # If it was not there, but now the two cells have the same coordinate
 
-            # убираем координаты короля вверху стека, которые мы поставили для проверок
+            # Remove the coordinates of the King at the top of the stack, we have set for inspections
             s/^... //
 
             x
@@ -1379,24 +1378,24 @@ a1rb1nc1id1qe1kf1ig1nh1r /
         b make-fake-kings::loop
     }
 
-    # заменяем переводы строк на пробелы в стеке короля
+    # Replace newlines with spaces in the stack King
     s/\n/ /g  
 
     b @
 }
 
-# проверка мата и шаха королю
+# Check and checkmate the king Shah
 /@check-mate()/ {
-    # во-первых, вычищаем псевдокоролей с доски
+    # First, we clean off the board psevdokoroley
     s/\(Board:[^ z]*\)..z[^ ]*/\1/
 
-    # во-вторых, сохраняем стек и оставляем только ходы и возможные расположения королей
+    # Second, keep a stack and leave only the moves and the possible location of the Kings
     h; s/.*King:\(..\(.\)\)/\2ing:\1/
 
-    # есть ли угроза королю?
+    # There is a threat to the king?
     /[Kk]ing:\(..\).*Move:\1/ {
-         # это уже шах, теперь надо перебрать все позиции и посмотреть есть ли куда королю деваться,
-         # если нет, это мат
+         # This is the Shah, now we have to loop through all the items and see if there where the king to go,
+         # If not, it mat
 
          :check-mate::loop
          /\(..\)[kK].. *\(.*\)Move:\1./ {
@@ -1406,54 +1405,54 @@ a1rb1nc1id1qe1kf1ig1nh1r /
          }
 
          /^k/ {
-             # посмотрим, остался ли ход королю
+             # Let's see whether there was progress King
              /[^0][^0]k[^X0][^X0]/ ! {
                 i\
-                Вам шах и мат, вы проиграли
+                You checkmate, you lose
 
                 q
              }
              i\
-             Вам шах
+             You Shah
 
              b check-mate::cleanup
         }
 
-        # посмотрим, остался ли ход королю
+        # Let's see whether there was progress King
         /[^0][^0]K[^X0][^X0]/ ! {
             i\
-            Мне шах и мат, я проиграл
+            I checkmate, I lost
 
             q
         }
 
-        # вычищаем ходы других фигур
+        # We clean the moves of other figures
         s/ *Move:.*//
 
-        # формирует ход короля в первую попавшуюся сторону
+        # Shapes move into the first king of the side
         s/.*\([^0 ][^0 ]K\)[^0 ][^0 ].*\([^ ][^ ]K\)XX.*/(\2→\1)/
         
-        # кладём его на вершину стека
+        # Put it on top of the stack
         H; x; s/\(.*\)\n\(([^)]*)\)/1B\2 \1/; x
 
         b check-mate::cleanup
     }
 
-    # кладём метку, что ходов не требуется
+    # Put a label that moves is not required
     x; s/^/END /; x
 
     :check-mate::cleanup
-    # восстанавливаем стек и убираем с него лишнее
+    # Restore the stack and remove it from unnecessary
 
     g; s/ *King:.*//
     b @
 }
 
-# возможно на ходе чёрных белого короля съели?
+# Possible on the progress of black white king ate?
 /@check-white-king-exists()/ {
     /Board:[^ ]*k/ ! {
         i\
-        Вам шах и мат, вы проиграли
+        You checkmate, you lose
 
         q  
     }
@@ -1461,11 +1460,11 @@ a1rb1nc1id1qe1kf1ig1nh1r /
     b @
 }
 
-# возможно на ходе белых чёрного короля съели?
+# Possible on the course of the white black king ate?
 /@check-black-king-exists()/ {
     /Board:[^ ]*K/ ! {
         i\
-        Мне шах и мат, я проиграл
+        I checkmate, I lost
 
         q  
     }
@@ -1479,45 +1478,45 @@ a1rb1nc1id1qe1kf1ig1nh1r /
 
 b @
 
-# хождение фигурой
+# Walking figure
 :common::go
-# возвращаем стек
+# Return stack
 G; s/\n//
-# переписываем куда мы уже ходили в текущую фигуру
+# Rewrite where we used to go to the current figure
 # XYFPPXYF.. → XYF__XYPP
 s/\(...\)\(..\)\(...\)../\1__\3\2/
 
-# данные о фигурах и доска, остальное убираем
+# Data about the shapes and the board, remove the rest
 s/^\([^ ]*END\).*\(Board:[^ ]*\).*/\1 \2/
 
-# если на предполагаемом поле есть фантомный король, то не обращаем внимания на остальное
+# If the field is expected to phantom king, that we do not pay attention to the rest of
 /^\(..\).*\1z/ ! {
-    # смотрим нет ли на предполагаемом поле нашей собственной фигуры
+    # Do not look at the proposed field of our own figures
     s/^\(..\)\([PQKINR].*\1[PQKINR]\)/00\2/
     s/^\(..\)\([pqkinr].*\1[pqkinr]\)/00\2/
 }
 
-# если во второй координате ноль, ставим ноль и в первую
+# If the second coordinate zero, put a zero in the first
 s/^.0/00/
 
-# если ходить сюда можно, ходим
+# If you can go here, go
 /^0/ ! {
-    # XY Фигура хода XY Фигура текущая, ходим всегда на дальней доске
-    # меняем координаты фигуры, которая ходит
+    # XY XY stroke current figure, always walk on the far board
+    # Change the coordinates of the figure that walks
     s/\(\(...\)__\(...\).*Board:.*\)\3/\1\2/
 
-    # меняем координаты того места куда ходим, съедая по пути фигуру
+    # Change the coordinates of the place where we go, eating on the way figure
     s/\(..\)\(.__\)\(..\)\(.*Board:.*\)\1./\1\2\3\4\3 /
 
-    # если получилась пешка на первой горизонтали, меняем её на ферзя, она может быть
-    # только одна и только на одной доске
+    # If it pawn on the first rank, change it to the queen, it can be
+    # Only one and only one board
     s/\([a-h]1\)P/\1Q/
 }
 
-# стек возвращаем, убирая с него второй (оставшийся) стек выделенных фигур
+# Return stack, removing it from the second (remaining) stack isolated figures
 G; s/\n[^ ]* */ /
 
-# меняем нашу добавленную и последнюю доску местами
+# Adding and changing our last board seats
 s/\(Board:[^ ]*\)\(.*\)\(Board:[^ ]*\)/\3\2\1/
 
 b @
